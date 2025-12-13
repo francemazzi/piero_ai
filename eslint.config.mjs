@@ -10,7 +10,8 @@ import pluginVue from 'eslint-plugin-vue';
 
 export default defineConfigWithVueTs([
     {
-        ignores: ['dist/*', 'packages/*/dist/*'],
+        // Local per-user configuration files (ignored by git) should not block lint/commits.
+        ignores: ['config.ts', 'dist/*', 'packages/*/dist/*', 'styles.ts'],
     },
     pluginVue.configs['flat/essential'],
     vueTsConfigs.recommendedTypeChecked,
