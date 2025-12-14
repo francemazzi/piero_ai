@@ -6,25 +6,20 @@
     import { useElevationProfileStore } from './store';
 
     const store = useElevationProfileStore();
-    const chartCanvas = ref<HTMLCanvasElement | null>(null);
+    const chartContainer = ref<HTMLDivElement | null>(null);
+    let chartInstance: unknown = null;
 
     const hasProfileData = computed(() => store.profileData.length > 0);
     const maxElevation = computed(() => {
-        if (store.profileData.length === 0) {
-            return 0;
-        }
+        if (store.profileData.length === 0) return 0;
         return Math.max(...store.profileData.map(p => p.elevation));
     });
     const minElevation = computed(() => {
-        if (store.profileData.length === 0) {
-            return 0;
-        }
+        if (store.profileData.length === 0) return 0;
         return Math.min(...store.profileData.map(p => p.elevation));
     });
     const totalDistance = computed(() => {
-        if (store.profileData.length === 0) {
-            return 0;
-        }
+        if (store.profileData.length === 0) return 0;
         return store.profileData[store.profileData.length - 1]?.distance ?? 0;
     });
 
@@ -33,12 +28,21 @@
         updateChart();
     });
 
+    onUnmounted(() => {
+        if (chartInstance !== null) {
+            chartInstance = null;
+        }
+    });
+
     function updateChart(): void {
-        if (chartCanvas.value === null || store.profileData.length === 0) {
+        if (!chartContainer.value || store.profileData.length === 0) {
             return;
         }
 
-        const canvas = chartCanvas.value;
+        const canvas = chartContainer.value as HTMLCanvasElement | null;
+        if (canvas === null) {
+            return;
+        }
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
@@ -190,7 +194,7 @@
 
         <div v-if="hasProfileData" class="chart-container">
             <canvas
-                ref="chartCanvas"
+                ref="chartContainer"
                 width="400"
                 height="300"
                 style="max-width: 100%; height: auto"

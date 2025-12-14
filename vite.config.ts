@@ -55,6 +55,14 @@ const appConfig = defineConfig(() => {
                 },
             },
         },
+        css: {
+            preprocessorOptions: {
+                scss: {
+                    quietDeps: true,
+                    silenceDeprecations: ['import', 'global-builtin', 'color-functions'],
+                },
+            },
+        },
         optimizeDeps: {
             // We have an issue with the cityjson-three-loader with Workers when optimized
             // (see https://gitlab.com/giro3d/piero/-/issues/98)

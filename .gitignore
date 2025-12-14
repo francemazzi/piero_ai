@@ -22,7 +22,6 @@ public/laz-perf.wasm
 
 # We should stop putting data in there
 public/cityjson
-public/datasets
 public/geojson
 public/ifc
 public/ply

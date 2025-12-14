@@ -1,16 +1,12 @@
 import { createPieroApp } from '@giro3d/piero';
-import { CityJSONLoader } from '@giro3d/piero-plugin-cityjson';
 import {
+    AutoConfiguration,
     CoordinatesSearch,
     DownloadDataset,
+    ElevationProfileAnalysis,
     FloodingPlaneAnalysis,
-    FrenchBanGeocoder,
-    IFCLoader,
     OpenLayersMinimap,
-    PLYLoader,
     PostProcessEntities,
-    PotreeLoader,
-    Tour,
 } from '@giro3d/piero/modules';
 import ClippingBoxAnalysis from '@giro3d/piero/modules/ClippingBoxAnalysis';
 import CrossSectionAnalysis from '@giro3d/piero/modules/CrossSectionAnalysis';
@@ -41,25 +37,23 @@ function start(): Promise<void> {
     // performance and bundle size.
     const modules = [
         // Misc modules
-        new Tour(),
+        new AutoConfiguration(),
         new DownloadDataset(),
         new OpenLayersMinimap(),
         new PostProcessEntities(),
 
         // Data loaders
-        new IFCLoader(),
-        new CityJSONLoader(),
-        new PLYLoader(),
-        new PotreeLoader(),
+        // Removed: IFCLoader, CityJSONLoader, PLYLoader, PotreeLoader (not needed for agricultural use)
 
         // Analysis tools
         new FloodingPlaneAnalysis(),
         new CrossSectionAnalysis(),
         new ClippingBoxAnalysis(),
+        new ElevationProfileAnalysis(),
 
         // Search
-        new FrenchBanGeocoder(),
         new CoordinatesSearch(),
+        // Removed: FrenchBanGeocoder (French-specific, not needed for Italian use)
     ];
 
     // Piero can either load a remote configuration from the provided 'config' URL param

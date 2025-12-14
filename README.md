@@ -25,6 +25,98 @@
 
 Piero is powered by **[Giro3D](https://giro3d.org/)** and supports a variety of heterogeneous data sources, either 2D and 3D. The application comes with some sample data, you can add your own data via drag and drop from your computer to visualize it.
 
+### Loading Your Datasets
+
+Piero supports multiple ways to load your datasets:
+
+#### 1. Import from URL
+
+You can import datasets directly from URLs (local or remote):
+
+- **Relative URL** (from `public/` folder): Use paths like `datasets/your-folder/your-file.geojson`
+    - Example: `datasets/tuo-dataset/tuo-file.geojson`
+- **Absolute URL**: Use full URLs like `http://localhost:8080/datasets/tuo-dataset/tuo-file.geojson` or any remote URL
+
+To import:
+
+1. Open the **Datasets** panel (left sidebar)
+2. Enter the URL in the "Import URL" field
+3. Click **"Import URL"**
+
+#### 2. Import from File
+
+You can drag and drop files from your computer or use the file picker:
+
+1. Open the **Datasets** panel (left sidebar)
+2. Click **"Import file"** button
+3. Select your file(s) from your computer
+
+### Supported File Formats
+
+Piero supports the following file formats for direct import (via "Import file" or "Import URL"):
+
+#### ✅ Vector Data (2D/2.5D)
+
+- **`.geojson`** or **`.geo.json`** - GeoJSON format (most common)
+    - Example: `mydata.geojson`
+    - Supports points, lines, polygons with properties
+- **`.gpkg`** - GeoPackage format
+    - Example: `mydata.gpkg`
+- **`.gpx`** - GPS Exchange Format
+    - Example: `track.gpx`
+- **`.kml`** - Keyhole Markup Language
+    - Example: `places.kml`
+
+#### ✅ Raster/Elevation Data
+
+- **`.tif`** or **`.tiff`** - GeoTIFF / Cloud Optimized GeoTIFF (COG)
+    - Example: `dtm_lidar.tif`
+    - Automatically imported as elevation layer
+    - CRS detected from filename (e.g., `*_3857_*.tif` → EPSG:3857)
+    - ⚠️ **Important**: Files must be in **COG (Cloud Optimized GeoTIFF)** format. Regular GeoTIFF files may cause errors. Use tools like `rio cogeo` to convert GeoTIFF to COG format.
+
+#### ✅ Point Clouds (3D)
+
+- **`.las`** - LAS point cloud format
+    - Example: `lidar_data.las`
+- **`.laz`** - Compressed LAS format
+    - Example: `lidar_data.laz`
+
+#### ✅ Tabular Data (with coordinates)
+
+- **`.csv`** - Comma-separated values
+    - Example: `points.csv` (must have X/Y/Z or lat/lon columns)
+- **`.tsv`** - Tab-separated values
+- **`.dsv`** - Delimiter-separated values
+
+#### 📝 Note on Other Formats
+
+Some formats are supported but require configuration in `config.ts` rather than direct import:
+
+- **3D Tiles** - Requires tileset configuration
+- **CityJSON, IFC, PLY** - Supported via modules (see full list below)
+
+#### 3. Auto-Configuration Feature ✨
+
+**New in this version**: When you import a dataset, Piero automatically:
+
+- Calculates the bounding box of your data
+- Adjusts the camera view to fit your dataset
+- Centers the view on your data
+
+No manual configuration needed! Just import your data and the view will adapt automatically.
+
+> [!tip]
+> If you have datasets in the `public/datasets/` folder, you can reference them using relative URLs like `datasets/your-folder/file.geojson`. This works both in development (`npm run start`) and in production builds.
+
+**Example**: If you have files in `public/datasets/tuo-dataset/`:
+
+- GeoJSON file: Use `datasets/tuo-dataset/tuo-file.geojson`
+- COG GeoTIFF: Use `datasets/tuo-dataset/tuo-elevation.tif`
+- 3D Tiles: Use `datasets/tuo-dataset/3dtiles/` (if configured as a tileset)
+
+The application will automatically resolve these relative paths based on your `PIERO_BASE_URL` configuration.
+
 ![Display heterogeneous data](graphics/screenshots/3dview.png)
 
 ### Imagery
@@ -46,13 +138,13 @@ Piero is powered by **[Giro3D](https://giro3d.org/)** and supports a variety of 
 
 ### 3D assets
 
-- [3D Tiles](https://www.ogc.org/standard/3DTiles/) - not supported via drag and drop
-- [CityJSON](https://www.cityjson.org/)
-- [CSV pointcloud](https://github.com/ASPRSorg/LAS)
-- [IFC](https://www.buildingsmart.org/standards/bsi-standards/industry-foundation-classes/)
-- [LAS/LAZ pointcloud](https://github.com/ASPRSorg/LAS)
-- [PLY](https://paulbourke.net/dataformats/ply/) - not supported via drag and drop
-- [Potree pointcloud](https://github.com/potree/potree/)
+- [3D Tiles](https://www.ogc.org/standard/3DTiles/) - ⚠️ Requires configuration in `config.ts`
+- [CityJSON](https://www.cityjson.org/) - ⚠️ Requires CityJSON module
+- [CSV pointcloud](https://github.com/ASPRSorg/LAS) - ✅ **Direct import supported** (`.csv` with X/Y/Z columns)
+- [IFC](https://www.buildingsmart.org/standards/bsi-standards/industry-foundation-classes/) - ⚠️ Requires IFC module
+- [LAS/LAZ pointcloud](https://github.com/ASPRSorg/LAS) - ✅ **Direct import supported** (`.las`, `.laz`)
+- [PLY](https://paulbourke.net/dataformats/ply/) - ⚠️ Not supported via drag and drop
+- [Potree pointcloud](https://github.com/potree/potree/) - ⚠️ Requires configuration in `config.ts`
 
 ### Extend
 
@@ -157,6 +249,30 @@ On compatible platforms, you can use the `init.sh` script to initialize the conf
     > Use the `.env` file as a template for `.env.local`.
 
 If you want to learn more about the configuration, head up to [its documentation](./CONFIGURATION.md).
+
+#### Organizing Your Datasets
+
+You can organize your datasets in the `public/datasets/` folder. For example:
+
+```text
+public/
+  datasets/
+    your-project/
+      your-data.geojson
+      your-elevation.tif
+      3dtiles/
+        layer.json
+        ...
+```
+
+Then reference them using relative URLs:
+
+- `datasets/your-project/your-data.geojson`
+- `datasets/your-project/your-elevation.tif`
+- `datasets/your-project/3dtiles/` (for 3D Tiles)
+
+> [!note]
+> The `public/` folder is served as the root of your web application. Files in `public/datasets/` are accessible via relative URLs starting with `datasets/`.
 
 #### Run
 

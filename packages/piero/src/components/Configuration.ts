@@ -33,8 +33,8 @@ export default function getPanels(): ReadonlyArray<PanelDef> {
                 title: 'Measurements',
             },
             { enabled: true, icon: 'bi-graph-up', key: 'analysis', title: 'Analysis' },
-            { enabled: true, icon: 'bi-bookmarks', key: 'bookmarks', title: 'Bookmarks' },
-            { enabled: true, icon: 'bi-info-circle', key: 'about', title: 'About Piero' },
+            { enabled: false, icon: 'bi-bookmarks', key: 'bookmarks', title: 'Bookmarks' },
+            { enabled: false, icon: 'bi-info-circle', key: 'about', title: 'About Piero' },
         ] as const;
     }
     return panels;

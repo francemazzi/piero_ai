@@ -4,6 +4,7 @@ import type { DatasetConfigImportable } from '@/types/configuration/datasets';
 import { Dataset } from '@/types/Dataset';
 import { getPublicFolderUrl } from '@/utils/Configuration';
 
+import * as cog from './cog';
 import * as csv from './csv';
 import * as las from './las';
 import * as vector from './vector';
@@ -20,6 +21,7 @@ export type LoaderContext = {
 };
 
 const loaders: Record<string, LoadDatasetFromFile> = {
+    cog: cog.load,
     csv: csv.load,
     dsv: csv.load,
     'geo.json': vector.load,
@@ -31,6 +33,8 @@ const loaders: Record<string, LoadDatasetFromFile> = {
     las: las.load,
 
     laz: las.load,
+    tif: cog.load,
+    tiff: cog.load,
     tsv: csv.load,
 };
 

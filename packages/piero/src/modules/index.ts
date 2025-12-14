@@ -1,6 +1,8 @@
+import AutoConfiguration from './AutoConfiguration';
 import ClippingBoxAnalysis from './ClippingBoxAnalysis';
 import CrossSectionAnalysis from './CrossSectionAnalysis';
 import DownloadDataset from './DownloadDataset';
+import ElevationProfileAnalysis from './ElevationProfileAnalysis';
 import FloodingPlaneAnalysis from './FloodingPlaneAnalysis';
 import CoordinatesSearch from './geocoding/CoordinatesSearch';
 import FrenchBanGeocoder from './geocoding/FrenchBanGeocoder';
@@ -12,10 +14,12 @@ import PotreeLoader from './PotreeLoader';
 import Tour from './Tour';
 
 export {
+    AutoConfiguration,
     ClippingBoxAnalysis,
     CoordinatesSearch,
     CrossSectionAnalysis,
     DownloadDataset,
+    ElevationProfileAnalysis,
     FloodingPlaneAnalysis,
     FrenchBanGeocoder,
     IFCLoader,

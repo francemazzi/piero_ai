@@ -52,6 +52,7 @@ export type DatasetConfigImportable = Extract<
     DatasetConfig,
     | CityJSONDatasetConfig
     | ColorLayerDatasetConfig
+    | ElevationLayerDatasetConfig
     | IFCDatasetConfig
     | PointCloudDatasetConfig
     | VectorLabelsDatasetConfig
