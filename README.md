@@ -274,6 +274,9 @@ Then reference them using relative URLs:
 > [!note]
 > The `public/` folder is served as the root of your web application. Files in `public/datasets/` are accessible via relative URLs starting with `datasets/`.
 
+> [!tip]
+> Keep private or project-specific datasets only in your local `public/datasets/` folder. This repository keeps that directory ignored so public branches do not expose proprietary data.
+
 #### Run
 
 Run the app with `npm run start`: it should be available at <http://localhost:8080/>.

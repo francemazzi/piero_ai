@@ -21,6 +21,8 @@ public/web-ifc.wasm
 public/laz-perf.wasm
 
 # We should stop putting data in there
+public/datasets/*
+!public/datasets/README.md
 public/cityjson
 public/geojson
 public/ifc

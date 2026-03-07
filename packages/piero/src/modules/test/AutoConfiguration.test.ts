@@ -5,11 +5,11 @@ import { describe, expect, it, vi } from 'vitest';
 import type { PieroContext } from '@/context';
 import type { PieroEvents } from '@/events';
 
-// Use Vite raw import so the fixture is bundled in tests (works in jsdom too).
-// This also guarantees we are using the real dataset folder content.
-// Type declaration is in vite-raw.d.ts
-import layerJsonRaw from '../../../../../public/datasets/enrico_gabrielli/3dtiles/layer.json?raw';
 import AutoConfiguration from '../AutoConfiguration';
+
+const TEST_BOUNDS_4326: [number, number, number, number] = [
+    11.91954776545397, 44.20460074762997, 11.93249469166947, 44.21391240962107,
+];
 
 function buildBboxFromLayerJsonBounds(bounds4326: [number, number, number, number]): Box3 {
     const [west, south, east, north] = bounds4326;
@@ -32,16 +32,11 @@ function lonToWebMercatorX(lon: number): number {
 }
 
 describe('AutoConfiguration', () => {
-    it('fits camera after datasets are ready (using enrico_gabrielli dataset bounds)', async () => {
+    it('fits camera after datasets are ready (using representative dataset bounds)', async () => {
         vi.useFakeTimers();
         const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1_000_000);
 
-        // Read dataset bounds from the public folder fixture.
-        const layerJson = JSON.parse(layerJsonRaw) as {
-            bounds: [number, number, number, number];
-        };
-
-        const rawBox = buildBboxFromLayerJsonBounds(layerJson.bounds);
+        const rawBox = buildBboxFromLayerJsonBounds(TEST_BOUNDS_4326);
 
         const lookTopDownAt = vi.fn().mockResolvedValue(undefined);
         const context: PieroContext = {
