@@ -1,11 +1,11 @@
 import type Instance from '@giro3d/giro3d/core/Instance';
+import type PickResult from '@giro3d/giro3d/core/picking/PickResult';
 import type Giro3DMap from '@giro3d/giro3d/entities/Map';
 import type Shape from '@giro3d/giro3d/entities/Shape';
 import type { CreationOptions } from '@giro3d/giro3d/interactions/DrawTool';
-import type { Vector3 } from 'three';
+import type { Vector2 } from 'three';
 
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates';
-import { isMapPickResult } from '@giro3d/giro3d/core/picking/PickTilesAt';
 import { isMap } from '@giro3d/giro3d/entities/Map';
 import DrawTool from '@giro3d/giro3d/interactions/DrawTool';
 
@@ -143,11 +143,9 @@ export default class ElevationProfileManager {
         this._store.setProfileData(profilePoints);
     }
 
-    private pick(event: MouseEvent | Vector3): unknown[] {
-        const results = this._instance.pickObjectsAt(event, {
-            filter: res => isMapPickResult(res),
+    private pick(event: MouseEvent | Vector2): PickResult[] {
+        return this._instance.pickObjectsAt(event, {
             sortByDistance: true,
         });
-        return results;
     }
 }
