@@ -15,6 +15,7 @@ export default class ElevationProfileAnalysis implements Module {
     public dispose(): void {
         window.removeEventListener('elevation-profile-draw', this._drawHandler);
         window.removeEventListener('elevation-profile-clear', this._clearHandler);
+        window.removeEventListener('elevation-profile-cancel', this._cancelHandler);
 
         if (this._manager) {
             this._manager.dispose();
@@ -36,17 +37,20 @@ export default class ElevationProfileAnalysis implements Module {
 
             this._manager = new ElevationProfileManager(context, instance, camera);
 
-            // Listen for draw/clear events from the Vue component
+            // Listen for draw/clear/cancel events from the Vue component
             window.addEventListener('elevation-profile-draw', this._drawHandler);
             window.addEventListener('elevation-profile-clear', this._clearHandler);
+            window.addEventListener('elevation-profile-cancel', this._cancelHandler);
         });
     }
 
+    private readonly _cancelHandler = (): void => {
+        this._manager?.cancelDrawing();
+    };
     private readonly _clearHandler = (): void => {
         this._manager?.clearPath();
     };
     private readonly _drawHandler = (): void => {
-        console.info('[ElevationProfile] draw event received, manager:', this._manager != null);
         void this._manager?.drawPath();
     };
 }

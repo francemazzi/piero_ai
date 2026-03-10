@@ -1,12 +1,12 @@
 <script setup lang="ts">
-    import { computed, onMounted, onUnmounted, ref } from 'vue';
+    import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
     import SwitchToggle from '@/components/SwitchToggle.vue';
 
     import { useElevationProfileStore } from './store';
 
     const store = useElevationProfileStore();
-    const chartContainer = ref<HTMLDivElement | null>(null);
+    const chartContainer = ref<HTMLCanvasElement | null>(null);
     let chartInstance: unknown = null;
 
     const hasProfileData = computed(() => store.profileData.length > 0);
@@ -39,7 +39,7 @@
             return;
         }
 
-        const canvas = chartContainer.value as HTMLCanvasElement | null;
+        const canvas = chartContainer.value;
         if (canvas === null) {
             return;
         }
@@ -135,14 +135,28 @@
         }
     }
 
-    // Watch for profile data changes
-    const unwatch = store.$subscribe(() => {
-        updateChart();
-    });
+    // Watch for profile data changes - use nextTick because the canvas
+    // is inside v-if="hasProfileData" and may not be in the DOM yet
+    watch(
+        () => store.profileData,
+        async () => {
+            await nextTick();
+            updateChart();
+        },
+        { deep: true },
+    );
 
-    onUnmounted(() => {
-        unwatch();
-    });
+    function onCancelDrawing(): void {
+        window.dispatchEvent(new CustomEvent('elevation-profile-cancel'));
+    }
+
+    function onClearPath(): void {
+        window.dispatchEvent(new CustomEvent('elevation-profile-clear'));
+    }
+
+    function onDrawPath(): void {
+        window.dispatchEvent(new CustomEvent('elevation-profile-draw'));
+    }
 </script>
 
 <template>
@@ -160,20 +174,28 @@
         </div>
 
         <div v-if="store.isEnabled" class="mb-3">
+            <button v-if="!store.isDrawing" class="btn btn-primary btn-sm me-2" @click="onDrawPath">
+                Draw Path
+            </button>
             <button
-                class="btn btn-primary btn-sm me-2"
-                :disabled="store.isDrawing"
-                @click="() => window.dispatchEvent(new CustomEvent('elevation-profile-draw'))"
+                v-if="store.isDrawing"
+                class="btn btn-warning btn-sm me-2"
+                @click="onCancelDrawing"
             >
-                {{ store.isDrawing ? 'Drawing...' : 'Draw Path' }}
+                Cancel Drawing
             </button>
             <button
                 class="btn btn-secondary btn-sm"
-                :disabled="!hasProfileData"
-                @click="() => window.dispatchEvent(new CustomEvent('elevation-profile-clear'))"
+                :disabled="!hasProfileData || store.isDrawing"
+                @click="onClearPath"
             >
                 Clear
             </button>
+        </div>
+
+        <div v-if="store.isDrawing" class="drawing-hint text-muted small mb-3">
+            <strong>Left click</strong> to add points. <strong>Double click</strong> or
+            <strong>right click</strong> to finish.
         </div>
 
         <div v-if="hasProfileData" class="profile-stats mb-3">
@@ -201,7 +223,7 @@
             ></canvas>
         </div>
 
-        <div v-else-if="store.isEnabled" class="text-muted text-center py-4">
+        <div v-else-if="store.isEnabled && !store.isDrawing" class="text-muted text-center py-4">
             Click "Draw Path" to draw a path on the map and see its elevation profile.
         </div>
     </div>

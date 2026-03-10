@@ -5,6 +5,7 @@
 
     import type Feature from '@/types/Feature';
 
+    import { useElevationProfileStore } from '@/modules/elevationProfileAnalysis/store';
     import Giro3DManager from '@/services/Giro3DManager';
     import { useAnnotationStore } from '@/stores/annotations';
     import { useCameraStore } from '@/stores/camera';
@@ -47,6 +48,7 @@
     const cameraStore = useCameraStore();
     const annotationStore = useAnnotationStore();
     const measurementStore = useMeasurementStore();
+    const elevationProfileStore = useElevationProfileStore();
     const widgetStore = useWidgetStore();
 
     const giro3d = shallowRef<Giro3DManager | null>(null);
@@ -161,7 +163,8 @@
             cameraStore.getNavigationMode() === 'position-on-map' ||
             cameraStore.isUserInteracting() ||
             annotationStore.isUserDrawing() ||
-            measurementStore.isUserMeasuring()
+            measurementStore.isUserMeasuring() ||
+            elevationProfileStore.isDrawing
         ) {
             return;
         }

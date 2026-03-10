@@ -8,7 +8,7 @@ import type { Vector2 } from 'three';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates';
 import { isMap } from '@giro3d/giro3d/entities/Map';
 import { isShapePickResult } from '@giro3d/giro3d/entities/Shape';
-import DrawTool from '@giro3d/giro3d/interactions/DrawTool';
+import DrawTool, { conditions } from '@giro3d/giro3d/interactions/DrawTool';
 
 import type { PieroContext } from '@/context';
 import type CameraController from '@/services/CameraController';
@@ -20,6 +20,7 @@ import { type ElevationPoint, useElevationProfileStore } from './store';
 export default class ElevationProfileManager {
     private readonly _camera: CameraController;
     private _currentPath: Shape | null = null;
+    private _drawAbortController: AbortController | null = null;
     private readonly _drawTool: DrawTool;
     private readonly _instance: Instance;
     private readonly _store = useElevationProfileStore();
@@ -45,6 +46,13 @@ export default class ElevationProfileManager {
         this._store.setCursorManager(context.view.getSceneCursorManager());
     }
 
+    public cancelDrawing(): void {
+        if (this._drawAbortController) {
+            this._drawAbortController.abort();
+            this._drawAbortController = null;
+        }
+    }
+
     public clearPath(): void {
         if (this._currentPath) {
             this._instance.remove(this._currentPath);
@@ -54,6 +62,7 @@ export default class ElevationProfileManager {
     }
 
     public dispose(): void {
+        this.cancelDrawing();
         if (this._currentPath) {
             this._instance.remove(this._currentPath);
             this._currentPath = null;
@@ -63,13 +72,8 @@ export default class ElevationProfileManager {
 
     public async drawPath(): Promise<void> {
         if (this._store.isDrawing) {
-            console.warn('[ElevationProfile] drawPath called but already drawing');
             return;
         }
-
-        console.info('[ElevationProfile] drawPath: starting drawing mode');
-        console.info('[ElevationProfile] domElement:', this._instance.domElement);
-        console.info('[ElevationProfile] entities:', this._instance.getObjects().length);
 
         this._store.setIsDrawing(true);
 
@@ -79,19 +83,21 @@ export default class ElevationProfileManager {
             this._currentPath = null;
         }
 
+        this._drawAbortController = new AbortController();
+
         const options: CreationOptions = {
             color: DEFAULT_SHAPE_COLOR,
+            endCondition: (e: MouseEvent) => conditions.rightClick(e) || conditions.doubleClick(e),
             pick: this.pick.bind(this),
             showLine: true,
-            showSegmentLabels: false,
+            showSegmentLabels: true,
             showVertexLabels: false,
             showVertices: true,
+            signal: this._drawAbortController.signal,
         };
 
         try {
-            console.info('[ElevationProfile] calling createLineString...');
             const shape = await this._drawTool.createLineString(options);
-            console.info('[ElevationProfile] createLineString resolved:', shape);
 
             if (shape == null) {
                 return;
@@ -102,8 +108,11 @@ export default class ElevationProfileManager {
             this._currentPath = shape;
             this.computeProfile(this._currentPath);
         } catch (error) {
-            console.error('[ElevationProfile] Error drawing path:', error);
+            if ((error as Error).name !== 'AbortError') {
+                console.error('[ElevationProfile] Error drawing path:', error);
+            }
         } finally {
+            this._drawAbortController = null;
             this._store.setIsDrawing(false);
         }
     }
@@ -113,7 +122,7 @@ export default class ElevationProfileManager {
         const map = instance.getEntities(o => isMap(o)).at(0) as Giro3DMap | undefined;
 
         if (map === undefined) {
-            console.warn('No map found for elevation profile');
+            console.warn('[ElevationProfile] No map found for elevation profile');
             return;
         }
 
@@ -122,13 +131,14 @@ export default class ElevationProfileManager {
             return;
         }
 
+        const crs = instance.referenceCrs;
         const profilePoints: ElevationPoint[] = [];
         let totalDistance = 0;
 
         // Get elevation for each point
         for (let i = 0; i < points.length; i++) {
             const point = points[i];
-            const coord = Coordinates.fromVector3(point, instance.referenceCrs);
+            const coord = new Coordinates(crs, point.x, point.y, point.z);
 
             // Get elevation from map
             const elevationResult = map
@@ -152,8 +162,6 @@ export default class ElevationProfileManager {
             });
         }
 
-        // If we have many points, we might want to sample them for better performance
-        // For now, we use all points
         this._store.setProfileData(profilePoints);
     }
 
@@ -161,8 +169,6 @@ export default class ElevationProfileManager {
         const results = this._instance.pickObjectsAt(event, {
             sortByDistance: true,
         });
-
-        console.debug('[ElevationProfile] pick results:', results.length, results);
 
         // Filter out shape pick results to avoid picking on the shape
         // being drawn or other shapes (annotations, measures, etc.)

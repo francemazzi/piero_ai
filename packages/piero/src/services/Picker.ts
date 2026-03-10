@@ -308,6 +308,10 @@ export default class Picker {
             }
         }
 
+        if (measurements == null) {
+            return;
+        }
+
         if (!attributesGroups.has('Measurement')) {
             attributesGroups.set('Measurement', []);
         }
