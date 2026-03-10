@@ -7,6 +7,7 @@ import type { Vector2 } from 'three';
 
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates';
 import { isMap } from '@giro3d/giro3d/entities/Map';
+import { isShapePickResult } from '@giro3d/giro3d/entities/Shape';
 import DrawTool from '@giro3d/giro3d/interactions/DrawTool';
 
 import type { PieroContext } from '@/context';
@@ -84,8 +85,14 @@ export default class ElevationProfileManager {
 
         try {
             const shape = await this._drawTool.createLineString(options);
-            this._currentPath = shape as Shape;
-            await this._instance.add(this._currentPath);
+
+            if (shape == null) {
+                return;
+            }
+
+            // The DrawTool already adds the shape to the instance internally,
+            // so we only need to keep a reference and compute the profile.
+            this._currentPath = shape;
             this.computeProfile(this._currentPath);
         } catch (error) {
             console.error('Error drawing path:', error);
@@ -144,8 +151,12 @@ export default class ElevationProfileManager {
     }
 
     private pick(event: MouseEvent | Vector2): PickResult[] {
-        return this._instance.pickObjectsAt(event, {
+        const results = this._instance.pickObjectsAt(event, {
             sortByDistance: true,
         });
+
+        // Filter out shape pick results to avoid picking on the shape
+        // being drawn or other shapes (annotations, measures, etc.)
+        return results.filter(res => !isShapePickResult(res));
     }
 }
