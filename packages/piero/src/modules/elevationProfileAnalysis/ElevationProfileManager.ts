@@ -63,8 +63,13 @@ export default class ElevationProfileManager {
 
     public async drawPath(): Promise<void> {
         if (this._store.isDrawing) {
+            console.warn('[ElevationProfile] drawPath called but already drawing');
             return;
         }
+
+        console.info('[ElevationProfile] drawPath: starting drawing mode');
+        console.info('[ElevationProfile] domElement:', this._instance.domElement);
+        console.info('[ElevationProfile] entities:', this._instance.getObjects().length);
 
         this._store.setIsDrawing(true);
 
@@ -84,7 +89,9 @@ export default class ElevationProfileManager {
         };
 
         try {
+            console.info('[ElevationProfile] calling createLineString...');
             const shape = await this._drawTool.createLineString(options);
+            console.info('[ElevationProfile] createLineString resolved:', shape);
 
             if (shape == null) {
                 return;
@@ -95,7 +102,7 @@ export default class ElevationProfileManager {
             this._currentPath = shape;
             this.computeProfile(this._currentPath);
         } catch (error) {
-            console.error('Error drawing path:', error);
+            console.error('[ElevationProfile] Error drawing path:', error);
         } finally {
             this._store.setIsDrawing(false);
         }
@@ -154,6 +161,8 @@ export default class ElevationProfileManager {
         const results = this._instance.pickObjectsAt(event, {
             sortByDistance: true,
         });
+
+        console.debug('[ElevationProfile] pick results:', results.length, results);
 
         // Filter out shape pick results to avoid picking on the shape
         // being drawn or other shapes (annotations, measures, etc.)

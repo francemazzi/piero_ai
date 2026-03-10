@@ -46,6 +46,7 @@ export default class ElevationProfileAnalysis implements Module {
         this._manager?.clearPath();
     };
     private readonly _drawHandler = (): void => {
+        console.info('[ElevationProfile] draw event received, manager:', this._manager != null);
         void this._manager?.drawPath();
     };
 }
